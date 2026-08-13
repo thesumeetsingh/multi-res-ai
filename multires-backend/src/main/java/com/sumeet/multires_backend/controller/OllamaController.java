@@ -3,24 +3,19 @@ package com.sumeet.multires_backend.controller;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.google.genai.GoogleGenAiChatModel;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
-@RequestMapping("/api/gemini")
 @CrossOrigin("*")
-public class GeminiController {
-
-//    private GoogleGenAiChatModel chatModel;
-//public GeminiController(GoogleGenAiChatModel chatModel){
-//    this.chatModel=chatModel;
-//}
+@RestController
+@RequestMapping("/api/ollama")
+public class OllamaController {
     private ChatClient chatClient;
 
-    public GeminiController(GoogleGenAiChatModel chatModel){
-        this.chatClient= ChatClient.create(chatModel);
+    public OllamaController(OllamaChatModel chatModel){
+        this.chatClient= org.springframework.ai.chat.client.ChatClient.create(chatModel);
     }
 
     @GetMapping("/{message}")
