@@ -8,36 +8,59 @@ function App() {
   const [geminiResponse, setGeminiResponse] = useState("");
   const [ollamaResponse, setOllamaResponse] = useState("");
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [geminiLoading, setGeminiLoading] = useState(false);
+  const [ollamaLoading, setOllamaLoading] = useState(false);
+
+  const [geminiError, setGeminiError] = useState("");
+  const [ollamaError, setOllamaError] = useState("");
 
   const [darkMode, setDarkMode] = useState(true);
 
-  const handleSubmit = async () => {
-    const trimmedPrompt = prompt.trim();
+  const loading = geminiLoading || ollamaLoading;
 
-    if (!trimmedPrompt || loading) {
+  const handleSubmit = () => {
+    const message = prompt.trim();
+
+    if (!message || loading) {
       return;
     }
-
-    setLoading(true);
-    setError("");
 
     setGeminiResponse("");
     setOllamaResponse("");
 
-    try {
-      const data = await sendPrompt(trimmedPrompt);
+    setGeminiError("");
+    setOllamaError("");
 
-      setGeminiResponse(data.gemini || "");
-      setOllamaResponse(data.ollama || "");
-    } catch (err) {
-      setError(
-        err.message || "Something went wrong. Please try again."
-      );
-    } finally {
-      setLoading(false);
-    }
+    setGeminiLoading(true);
+    setOllamaLoading(true);
+
+    // Gemini request
+    sendPrompt("gemini", message)
+      .then((response) => {
+        setGeminiResponse(response);
+      })
+      .catch((error) => {
+        setGeminiError(
+          error.message || "Failed to fetch Gemini response"
+        );
+      })
+      .finally(() => {
+        setGeminiLoading(false);
+      });
+
+    // Ollama request
+    sendPrompt("ollama", message)
+      .then((response) => {
+        setOllamaResponse(response);
+      })
+      .catch((error) => {
+        setOllamaError(
+          error.message || "Failed to fetch Ollama response"
+        );
+      })
+      .finally(() => {
+        setOllamaLoading(false);
+      });
   };
 
   const handleKeyDown = (event) => {
@@ -57,7 +80,7 @@ function App() {
 
         <button
           className="theme-button"
-          onClick={() => setDarkMode(!darkMode)}
+          onClick={() => setDarkMode((current) => !current)}
         >
           {darkMode ? "Light" : "Dark"}
         </button>
@@ -95,20 +118,15 @@ function App() {
           </div>
         </section>
 
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
-
         <section className="responses">
+          {/* Gemini */}
           <div className="response-card">
             <div className="response-header">
               <h2>Gemini</h2>
             </div>
 
             <div className="response-content">
-              {loading ? (
+              {geminiLoading ? (
                 <div className="loading">
                   <div className="loading-dots">
                     <span></span>
@@ -117,6 +135,10 @@ function App() {
                   </div>
 
                   <p>Generating response...</p>
+                </div>
+              ) : geminiError ? (
+                <div className="response-error">
+                  {geminiError}
                 </div>
               ) : geminiResponse ? (
                 <p>{geminiResponse}</p>
@@ -128,13 +150,14 @@ function App() {
             </div>
           </div>
 
+          {/* Ollama */}
           <div className="response-card">
             <div className="response-header">
               <h2>Ollama</h2>
             </div>
 
             <div className="response-content">
-              {loading ? (
+              {ollamaLoading ? (
                 <div className="loading">
                   <div className="loading-dots">
                     <span></span>
@@ -143,6 +166,10 @@ function App() {
                   </div>
 
                   <p>Generating response...</p>
+                </div>
+              ) : ollamaError ? (
+                <div className="response-error">
+                  {ollamaError}
                 </div>
               ) : ollamaResponse ? (
                 <p>{ollamaResponse}</p>
