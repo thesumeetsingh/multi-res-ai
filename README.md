@@ -1,71 +1,100 @@
 # MultiResAi
 
-MultiResAi is a simple AI response application built to demonstrate the
-use of **Spring AI** with both cloud-based and locally hosted AI models.
+MultiResAi is a simple AI application built with **Spring AI** that
+sends the same user prompt to two different AI models and displays their
+responses side by side.
 
-The application accepts a single user prompt and sends it to two AI
-providers:
+The project demonstrates the integration of:
 
--   **Google Gemini** --- cloud-based AI model accessed through the
-    Gemini API
--   **Ollama** --- locally hosted AI model running on the user's machine
+-   **Google Gemini** as a cloud-based AI model
+-   **Ollama with Qwen Code 14B** as a locally running AI model
 
-The responses are displayed independently in two side-by-side panels.
-The application does not require the user to select a model; the same
-prompt is sent to both models automatically.
+The frontend provides a single prompt interface, while the backend
+handles communication with both AI models through Spring AI.
 
 ## Screenshot
 
-![MultiResAi Home](screenshots/home.png)
+![MultiResAi](screenshots/home.png)
 
-## Features
-
--   Single prompt input for both AI models
--   Google Gemini integration through Spring AI
--   Local Ollama integration through Spring AI
--   Side-by-side display of Gemini and Ollama responses
--   Independent response and error handling for each model
--   Dark and light theme support
--   Enter to send a prompt
--   Shift + Enter for a new line
--   Responsive layout for smaller screens
--   Backend API URL configured through a Vite environment variable
-
-## Architecture
-
-The project uses a React frontend and a Spring Boot backend.
+## How It Works
 
 ``` text
-User
-  |
-  | Prompt
-  v
-React Frontend
-  |
-  |----------------------|
-  |                      |
-  v                      v
-Spring Boot Backend   Spring AI
-  |                      |
-  |              -------------------
-  |              |                 |
-  v              v                 v
-Gemini API      Gemini           Ollama
-(Cloud)                         (Local)
-  |              |                 |
-  |--------------|-----------------|
-                 |
-                 v
-        Two response panels
-        Gemini | Ollama
+                    User Prompt
+                        |
+                        v
+                 React Frontend
+                        |
+                        v
+                Spring Boot Backend
+                        |
+                     Spring AI
+                    /                           /                            v            v
+           Google Gemini     Ollama
+              Cloud         Local Qwen
+                  |             |
+                  v             v
+             Gemini Response  Ollama Response
+                  \             /
+                   \           /
+                    v         v
+                 React Frontend
+                   |       |
+                   v       v
+                Gemini   Ollama
+                Response Response
 ```
 
-Spring AI is used as the abstraction layer for interacting with the AI
-models. This allows the backend to work with both a cloud AI provider
-and a locally running model while keeping the application logic focused
-on sending prompts and receiving responses.
+A single prompt is sent to the backend. The backend sends that prompt to
+both configured AI models. The resulting responses are returned to the
+frontend and displayed independently.
 
-## Technologies Used
+## Backend
+
+The backend is built with **Spring Boot** and **Spring AI**.
+
+Spring AI provides the integration layer between the Spring Boot
+application and the AI models.
+
+### Google Gemini
+
+Google Gemini is integrated as the cloud-based AI provider through
+Spring AI's Google GenAI integration.
+
+The backend receives the user's prompt and passes it to the configured
+Gemini chat model through Spring AI.
+
+### Ollama
+
+Ollama runs locally and hosts the **Qwen Code 14B** model.
+
+Spring AI communicates with the locally running Ollama instance and
+sends the same prompt to the Qwen model.
+
+This demonstrates the use of both a cloud AI provider and a locally
+hosted AI model within the same Spring Boot application.
+
+## Frontend
+
+The frontend is built with:
+
+-   React
+-   Vite
+-   JavaScript
+-   CSS
+
+Its primary purpose is to provide the prompt interface and display the
+two responses returned by the backend.
+
+The frontend does not contain Gemini or Ollama API logic. It
+communicates with the Spring Boot backend.
+
+The backend base URL is configured through:
+
+``` env
+VITE_API_BASE_URL=http://localhost:8080/api
+```
+
+## Technologies
 
 ### Frontend
 
@@ -81,74 +110,19 @@ on sending prompts and receiving responses.
 -   Spring AI
 -   Spring Web
 
-### AI Providers
+### AI
 
 -   Google Gemini API
 -   Ollama
--   Qwen model running locally through Ollama
-
-## Project Structure
-
-A simplified structure of the project is:
-
-``` text
-multiresai/
-|
-├── multires-frontend/
-│   ├── src/
-│   │   ├── api.js
-│   │   ├── App.jsx
-│   │   ├── App.css
-│   │   ├── index.css
-│   │   └── main.jsx
-│   ├── screenshots/
-│   │   └── home.png
-│   ├── .env
-│   └── package.json
-│
-└── multires-backend/
-    ├── src/
-    │   └── main/
-    │       ├── java/
-    │       └── resources/
-    ├── pom.xml
-    └── ...
-```
-
-## Configuration
-
-The frontend uses a Vite environment variable for the backend base URL.
-
-Create a `.env` file in the frontend project root:
-
-``` env
-VITE_API_BASE_URL=http://localhost:8080/api
-```
-
-The backend URL is not hardcoded in the React source code.
-
-The Gemini API key should be configured on the backend and should not be
-exposed in the React frontend.
-
-Ollama runs locally and must be available on the machine running the
-backend.
+-   Qwen Code 14B
 
 ## Running the Project
 
-### 1. Start Ollama
+### Backend
 
-Make sure Ollama is installed and running locally, with the required
-Qwen model available.
+Start Ollama and make sure the Qwen Code 14B model is available locally.
 
-For example:
-
-``` bash
-ollama list
-```
-
-### 2. Start the Spring Boot Backend
-
-From the backend directory:
+Then start the Spring Boot application:
 
 ``` bash
 mvn spring-boot:run
@@ -160,7 +134,7 @@ The backend runs on:
 http://localhost:8080
 ```
 
-### 3. Start the React Frontend
+### Frontend
 
 From the frontend directory:
 
@@ -169,44 +143,31 @@ npm install
 npm run dev
 ```
 
-The Vite development server will provide the frontend URL, normally:
+The frontend runs through the Vite development server, normally at:
 
 ``` text
 http://localhost:5173
 ```
 
-## How It Works
+## Environment Configuration
 
-1.  The user enters one prompt in the frontend.
-2.  The frontend sends the same prompt to the backend for Gemini and
-    Ollama.
-3.  Spring AI is used by the backend to communicate with the configured
-    AI models.
-4.  Gemini processes the prompt through the cloud API.
-5.  Ollama processes the prompt using the locally hosted Qwen model.
-6.  The frontend displays the two responses independently in their
-    respective panels.
-
-The application is intentionally simple: its purpose is to demonstrate
-integrating **Spring AI with both a cloud AI service and a local AI
-model** in one application.
-
-## Environment and Security
-
-The Gemini API key belongs on the backend side only. It should not be
-placed in the React `.env` file or exposed to the browser.
-
-The frontend only needs the backend base URL:
+The frontend requires the backend base URL in `.env`:
 
 ``` env
 VITE_API_BASE_URL=http://localhost:8080/api
 ```
 
-For production deployment, the backend URL and API credentials should be
-configured through the deployment environment rather than committed to
-source control.
+The Gemini API key is configured on the backend and should not be
+exposed to the frontend.
 
-## License
+Ollama runs locally and does not require the frontend to directly access
+the model.
 
-This project is intended as a personal learning and demonstration
-project.
+## Project Purpose
+
+MultiResAi demonstrates how **Spring AI can be used to integrate
+different types of AI providers in the same Spring Boot application**.
+
+The project combines a cloud-hosted Gemini model with a locally hosted
+Qwen model through Ollama and provides a single interface for sending
+the same prompt to both.
